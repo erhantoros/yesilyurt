@@ -172,7 +172,7 @@ const Home = () => {
             <img 
               src="/logo.png" 
               alt="Yeşilyurt Peyzaj Logo" 
-              className="h-16 w-auto mr-2"
+              className="h-32 w-auto mr-2"
             />
           </motion.div>
           
@@ -618,7 +618,7 @@ const Home = () => {
                 <img 
                   src="/logo.png" 
                   alt="Yeşilyurt Peyzaj Logo" 
-                  className="h-8 w-auto mr-2"
+                  className="h-16 w-auto mr-2"
                 />
                 YEŞİLYURT PEYZAJ
               </h4>
