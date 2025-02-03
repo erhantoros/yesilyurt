@@ -18,6 +18,13 @@ import {
   Tooltip,
   ResponsiveContainer
 } from 'recharts';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface GalleryItem {
   id: string;
@@ -56,6 +63,17 @@ const Admin = () => {
     categoriesCount: {},
     recentUploads: 0
   });
+
+  const categories = [
+    "Süs Bitkileri",
+    "Tasarım",
+    "Uygulama",
+    "Peyzaj",
+    "Bahçe Düzenlemesi",
+    "Sulama Sistemleri",
+    "Mobilya",
+    "Aydınlatma"
+  ];
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -252,7 +270,6 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Sidebar */}
       <div className="fixed inset-y-0 left-0 w-64 bg-white shadow-lg">
         <div className="flex flex-col h-full">
           <div className="p-4">
@@ -321,7 +338,6 @@ const Admin = () => {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="ml-64 p-8">
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
@@ -442,11 +458,18 @@ const Admin = () => {
 
                   <div>
                     <label className="block text-sm font-medium mb-1">Kategori</label>
-                    <Input
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      required
-                    />
+                    <Select value={category} onValueChange={setCategory} required>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Kategori seçin" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((cat) => (
+                          <SelectItem key={cat} value={cat}>
+                            {cat}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <Button type="submit" disabled={loading}>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { FaWhatsapp, FaInstagram, FaMapMarkerAlt, FaBars, FaStar } from "react-icons/fa";
-import { motion, AnimatePresence, HTMLMotionProps } from "framer-motion";
-import { TreePine, Shovel, Sprout, Camera } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Shovel, Sprout, Camera, TreePine } from "lucide-react";
 import { supabase } from '@/lib/supabase';
 
 interface GalleryItem {
@@ -23,11 +23,6 @@ interface CardProps {
   className?: string;
   icon?: React.ElementType;
   animate?: boolean;
-}
-
-interface ButtonProps extends Omit<HTMLMotionProps<"button">, "whileHover" | "whileTap"> {
-  children: React.ReactNode;
-  className?: string;
 }
 
 const services = [
@@ -72,7 +67,7 @@ const testimonials = [
   }
 ];
 
-const Card = ({ children, className = "", icon: Icon, animate = true }: CardProps) => {
+const Card: React.FC<CardProps> = ({ children, className = "", icon: Icon, animate = true }) => {
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { 
@@ -97,18 +92,7 @@ const Card = ({ children, className = "", icon: Icon, animate = true }: CardProp
   );
 };
 
-const Button = ({ children, className = "", ...props }: ButtonProps) => (
-  <motion.button 
-    whileHover={{ scale: 1.05 }} 
-    whileTap={{ scale: 0.95 }} 
-    className={`px-6 py-3 rounded-full font-semibold shadow-lg transition-colors ${className}`}
-    {...props}
-  >
-    {children}
-  </motion.button>
-);
-
-const Home = () => {
+const App = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [heroContent, setHeroContent] = useState<HeroContent>({
     title: "Hayalinizdeki Bahçeyi Birlikte Tasarlayalım",
@@ -145,25 +129,11 @@ const Home = () => {
     }
   };
 
-  const filteredGalleryItems = activeCategory === "all" 
-    ? galleryItems 
-    : galleryItems.filter(item => item.category === activeCategory);
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md shadow-sm fixed w-full z-50">
-        <div className="container mx-auto flex justify-between items-center px-4 py-2">
+        <div className="container mx-auto flex justify-between items-center px-4 py-1">
           <motion.div 
             initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -172,7 +142,7 @@ const Home = () => {
             <img 
               src="/logo.png" 
               alt="Yeşilyurt Peyzaj Logo" 
-              className="h-32 w-auto mr-2"
+              className="h-24 w-auto mr-2"
             />
           </motion.div>
           
@@ -276,9 +246,12 @@ const Home = () => {
 
       {/* Hero Section */}
       <section 
-        className="w-full pt-24 min-h-screen flex items-center relative bg-cover bg-center bg-fixed bg-no-repeat"
+        className="w-full pt-24 min-h-screen flex items-center relative bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: `url('${heroContent.background_image}')`,
+          width: '100vw',
+          marginLeft: 'calc(-50vw + 50%)',
+          marginRight: 'calc(-50vw + 50%)'
         }}
       >
         <div className="absolute inset-0 bg-black bg-opacity-50" />
@@ -295,27 +268,28 @@ const Home = () => {
             {heroContent.description}
           </p>
           <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-            <a
+            <motion.a
+              whileHover={{ scale: 1.05 }}
               href="https://wa.me/905416459107"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block"
+              className="inline-block bg-green-600 text-white px-8 py-3 rounded-full hover:bg-green-700 transition-colors"
             >
-              <Button className="w-full sm:w-auto bg-green-600 text-white hover:bg-green-700">
-                <FaWhatsapp className="inline-block mr-2" /> Ücretsiz Keşif
-              </Button>
-            </a>
-            <a href="#projeler">
-              <Button className="w-full sm:w-auto bg-white text-green-600 hover:bg-gray-100">
-                <Camera className="inline-block mr-2" /> Projelerimiz
-              </Button>
-            </a>
+              <FaWhatsapp className="inline-block mr-2" /> Ücretsiz Keşif
+            </motion.a>
+            <motion.a 
+              whileHover={{ scale: 1.05 }}
+              href="#projeler"
+              className="inline-block bg-white text-green-600 px-8 py-3 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              <Camera className="inline-block mr-2" /> Projelerimiz
+            </motion.a>
           </div>
         </motion.div>
       </section>
 
       {/* Services Section */}
-      <section id="hizmetler" className="py-20 bg-white w-full">
+      <section id="hizmetler" className="py-20 bg-white w-[100vw] relative left-[50%] right-[50%] ml-[-50vw] mr-[-50vw]">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0 }}
@@ -328,13 +302,7 @@ const Home = () => {
               Profesyonel ekibimizle, bahçenizin her detayını özenle planlıyor ve uyguluyoruz.
             </p>
           </motion.div>
-          <motion.div 
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-8"
-          >
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {services.map((service, index) => (
               <Card key={index} icon={service.icon}>
                 <h4 className="text-xl font-semibold mb-3">{service.title}</h4>
@@ -349,12 +317,12 @@ const Home = () => {
                 </ul>
               </Card>
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 
       {/* Projects Section */}
-      <section id="projeler" className="py-20 bg-gray-50 w-full">
+      <section id="projeler" className="py-20 bg-gray-50 w-[100vw] relative left-[50%] right-[50%] ml-[-50vw] mr-[-50vw]">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0 }}
@@ -369,8 +337,9 @@ const Home = () => {
             
             {/* Category Filters */}
             <div className="flex flex-wrap justify-center gap-4 mb-8">
-              <Button
-                className={`${
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                className={`px-6 py-3 rounded-full font-semibold shadow-lg transition-colors ${
                   activeCategory === "all"
                     ? "bg-green-600 text-white"
                     : "bg-white text-green-600"
@@ -378,11 +347,12 @@ const Home = () => {
                 onClick={() => setActiveCategory("all")}
               >
                 Tümü
-              </Button>
+              </motion.button>
               {categories.map((category) => (
-                <Button
+                <motion.button
                   key={category}
-                  className={`${
+                  whileHover={{ scale: 1.05 }}
+                  className={`px-6 py-3 rounded-full font-semibold shadow-lg transition-colors ${
                     activeCategory === category
                       ? "bg-green-600 text-white"
                       : "bg-white text-green-600"
@@ -390,44 +360,40 @@ const Home = () => {
                   onClick={() => setActiveCategory(category)}
                 >
                   {category}
-                </Button>
+                </motion.button>
               ))}
             </div>
           </motion.div>
           
-          <motion.div 
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-8"
-          >
-            {filteredGalleryItems.map((item) => (
-              <motion.div
-                key={item.id}
-                whileHover={{ y: -10 }}
-                className="group relative overflow-hidden rounded-xl shadow-lg aspect-square"
-              >
-                <img
-                  src={item.image_url}
-                  alt={item.title}
-                  className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                    <span className="text-sm bg-green-600 px-3 py-1 rounded-full">{item.category}</span>
-                    <h4 className="text-xl font-bold mt-2">{item.title}</h4>
-                    <p className="text-gray-200">{item.description}</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {galleryItems
+              .filter(item => activeCategory === "all" || item.category === activeCategory)
+              .map((item) => (
+                <motion.div
+                  key={item.id}
+                  whileHover={{ y: -10 }}
+                  className="group relative overflow-hidden rounded-xl shadow-lg aspect-square"
+                >
+                  <img
+                    src={item.image_url}
+                    alt={item.title}
+                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                      <span className="text-sm bg-green-600 px-3 py-1 rounded-full">{item.category}</span>
+                      <h4 className="text-xl font-bold mt-2">{item.title}</h4>
+                      <p className="text-gray-200">{item.description}</p>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
+                </motion.div>
+              ))}
+          </div>
         </div>
       </section>
 
       {/* Testimonials Section */}
-      <section id="yorumlar" className="py-20 bg-white w-full">
+      <section id="yorumlar" className="py-20 bg-white w-[100vw] relative left-[50%] right-[50%] ml-[-50vw] mr-[-50vw]">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0 }}
@@ -460,7 +426,7 @@ const Home = () => {
       </section>
 
       {/* Blog Section */}
-      <section id="blog" className="py-20 bg-gray-50 w-full">
+      <section id="blog" className="py-20 bg-gray-50 w-[100vw] relative left-[50%] right-[50%] ml-[-50vw] mr-[-50vw]">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0 }}
@@ -491,7 +457,7 @@ const Home = () => {
                 image: "https://images.unsplash.com/photo-1598902108854-10e335adac99"
               }
             ].map((post, index) => (
-              <Card key={index} className="overflow-hidden">
+              <Card key={index}>
                 <div className="h-48 -mx-6 -mt-6 mb-6 overflow-hidden">
                   <img
                     src={post.image}
@@ -501,9 +467,12 @@ const Home = () => {
                 </div>
                 <h4 className="text-xl font-semibold mb-2">{post.title}</h4>
                 <p className="text-gray-600">{post.description}</p>
-                <Button className="mt-4 bg-green-600 text-white hover:bg-green-700">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  className="mt-4 bg-green-600 text-white px-6 py-2 rounded-full hover:bg-green-700 transition-colors"
+                >
                   Devamını Oku
-                </Button>
+                </motion.button>
               </Card>
             ))}
           </div>
@@ -511,7 +480,7 @@ const Home = () => {
       </section>
 
       {/* Contact Section */}
-      <section id="iletisim" className="py-20 bg-white w-full">
+      <section id="iletisim" className="py-20 bg-white w-[100vw] relative left-[50%] right-[50%] ml-[-50vw] mr-[-50vw]">
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
             <motion.div
@@ -601,27 +570,30 @@ const Home = () => {
                   required
                 ></textarea>
               </div>
-              <Button className="w-full bg-green-600 text-white hover:bg-green-700" type="submit">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                className="w-full bg-green-600 text-white px-6 py-3 rounded-full hover:bg-green-700 transition-colors"
+                type="submit"
+              >
                 Gönder
-              </Button>
+              </motion.button>
             </motion.form>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-green-900 text-white py-12 w-full">
+      <footer className="bg-green-900 text-white py-12 w-[100vw] relative left-[50%] right-[50%] ml-[-50vw] mr-[-50vw]">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h4 className="text-xl font-bold mb-4 flex items-center">
+              <div className="flex items-center mb-4">
                 <img 
                   src="/logo.png" 
                   alt="Yeşilyurt Peyzaj Logo" 
-                  className="h-16 w-auto mr-2"
+                  className="h-12 mr-2 brightness-0 invert"
                 />
-                YEŞİLYURT PEYZAJ
-              </h4>
+              </div>
               <p className="text-gray-400">
                 20 yıldır profesyonel peyzaj hizmetleri sunuyoruz.
               </p>
@@ -682,4 +654,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default App;
