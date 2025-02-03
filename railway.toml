@@ -1,0 +1,10 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "npm run start"
+restartPolicyType = "ON_FAILURE"
+numFailures = 10
+
+[[services]]
+name = "web"
