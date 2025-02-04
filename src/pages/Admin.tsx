@@ -3,12 +3,21 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { AuthForm } from '@/components/ui/auth-form';
 import { User } from '@supabase/supabase-js';
-import { BarChart3, Image as ImageIcon, Home, Settings, Users, LogOut } from 'lucide-react';
+import { 
+  BarChart3, 
+  Image as ImageIcon, 
+  Home, 
+  Settings, 
+  Users, 
+  LogOut,
+  PenTool,
+  Info
+} from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -18,13 +27,6 @@ import {
   Tooltip,
   ResponsiveContainer
 } from 'recharts';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface GalleryItem {
   id: string;
@@ -33,6 +35,21 @@ interface GalleryItem {
   category: string;
   image_url: string;
   created_at: string;
+}
+
+interface BlogPost {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  image_url?: string;
+  created_at: string;
+}
+
+interface AboutContent {
+  id: string;
+  content: string;
+  image_url?: string;
 }
 
 interface HeroContent {
@@ -57,6 +74,8 @@ const Admin = () => {
   const [category, setCategory] = useState('');
   const [loading, setLoading] = useState(false);
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [aboutContent, setAboutContent] = useState<AboutContent | null>(null);
   const [heroContent, setHeroContent] = useState<HeroContent | null>(null);
   const [stats, setStats] = useState<Stats>({
     totalImages: 0,
@@ -64,15 +83,17 @@ const Admin = () => {
     recentUploads: 0
   });
 
+  // Blog form states
+  const [blogTitle, setBlogTitle] = useState('');
+  const [blogContent, setBlogContent] = useState('');
+  const [blogCategory, setBlogCategory] = useState('');
+  const [blogImage, setBlogImage] = useState<File | null>(null);
+
   const categories = [
-    "Süs Bitkileri",
-    "Tasarım",
     "Uygulama",
-    "Peyzaj",
-    "Bahçe Düzenlemesi",
-    "Sulama Sistemleri",
-    "Mobilya",
-    "Aydınlatma"
+    "Üretim",
+    "Çizim",
+    "Tasarım"
   ];
 
   useEffect(() => {
@@ -90,73 +111,93 @@ const Admin = () => {
   useEffect(() => {
     if (user) {
       fetchGalleryItems();
+      fetchBlogPosts();
+      fetchAboutContent();
       fetchHeroContent();
     }
   }, [user]);
 
-  useEffect(() => {
-    if (galleryItems.length > 0) {
-      calculateStats();
-    }
-  }, [galleryItems]);
+  const fetchGalleryItems = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('gallery_items')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-  const calculateStats = () => {
+      if (error) throw error;
+      setGalleryItems(data || []);
+      calculateStats(data);
+    } catch (error) {
+      toast.error('Galeri öğeleri yüklenirken hata oluştu');
+      console.error(error);
+    }
+  };
+
+  const fetchBlogPosts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setBlogPosts(data || []);
+    } catch (error) {
+      toast.error('Blog yazıları yüklenirken hata oluştu');
+      console.error(error);
+    }
+  };
+
+  const fetchAboutContent = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('about_content')
+        .select('*')
+        .single();
+
+      if (error) throw error;
+      setAboutContent(data);
+    } catch (error) {
+      toast.error('Hakkımızda içeriği yüklenirken hata oluştu');
+      console.error(error);
+    }
+  };
+
+  const fetchHeroContent = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('hero_content')
+        .select('*')
+        .single();
+
+      if (error) throw error;
+      setHeroContent(data);
+    } catch (error) {
+      toast.error('Hero içeriği yüklenirken hata oluştu');
+      console.error(error);
+    }
+  };
+
+  const calculateStats = (items: GalleryItem[]) => {
     const categoriesCount: { [key: string]: number } = {};
-    galleryItems.forEach(item => {
+    items.forEach(item => {
       categoriesCount[item.category] = (categoriesCount[item.category] || 0) + 1;
     });
 
     const now = new Date();
     const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const recentUploads = galleryItems.filter(item => 
+    const recentUploads = items.filter(item => 
       new Date(item.created_at) > lastWeek
     ).length;
 
     setStats({
-      totalImages: galleryItems.length,
+      totalImages: items.length,
       categoriesCount,
       recentUploads
     });
   };
 
-  const fetchGalleryItems = async () => {
-    const { data, error } = await supabase
-      .from('gallery_items')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      toast.error('Galeri öğeleri yüklenirken hata oluştu');
-      return;
-    }
-
-    if (data) {
-      setGalleryItems(data);
-    }
-  };
-
-  const fetchHeroContent = async () => {
-    const { data, error } = await supabase
-      .from('hero_content')
-      .select('*')
-      .single();
-
-    if (error) {
-      toast.error('Hero içeriği yüklenirken hata oluştu');
-      return;
-    }
-
-    if (data) {
-      setHeroContent(data);
-    }
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
-    setImages(Array.from(e.target.files));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleGalleryUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
@@ -192,10 +233,78 @@ const Admin = () => {
       setImages([]);
       fetchGalleryItems();
     } catch (error) {
-      toast.error('Bir hata oluştu');
+      toast.error('Yükleme sırasında bir hata oluştu');
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleBlogSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      let imageUrl = '';
+      
+      if (blogImage) {
+        const fileName = `${Date.now()}-${blogImage.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from('blog')
+          .upload(fileName, blogImage);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('blog')
+          .getPublicUrl(fileName);
+
+        imageUrl = publicUrl;
+      }
+
+      const { error } = await supabase
+        .from('blog_posts')
+        .insert({
+          title: blogTitle,
+          content: blogContent,
+          category: blogCategory,
+          image_url: imageUrl
+        });
+
+      if (error) throw error;
+
+      toast.success('Blog yazısı başarıyla eklendi');
+      setBlogTitle('');
+      setBlogContent('');
+      setBlogCategory('');
+      setBlogImage(null);
+      fetchBlogPosts();
+    } catch (error) {
+      toast.error('Blog yazısı eklenirken bir hata oluştu');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAboutUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!aboutContent) return;
+
+    try {
+      const { error } = await supabase
+        .from('about_content')
+        .update({
+          content: aboutContent.content,
+          image_url: aboutContent.image_url
+        })
+        .eq('id', aboutContent.id);
+
+      if (error) throw error;
+      toast.success('Hakkımızda içeriği güncellendi');
+    } catch (error) {
+      toast.error('Güncelleme sırasında bir hata oluştu');
+      console.error(error);
     }
   };
 
@@ -216,7 +325,7 @@ const Admin = () => {
       if (error) throw error;
       toast.success('Hero içeriği güncellendi');
     } catch (error) {
-      toast.error('Güncelleme sırasında hata oluştu');
+      toast.error('Güncelleme sırasında bir hata oluştu');
       console.error(error);
     }
   };
@@ -270,6 +379,7 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      {/* Sidebar */}
       <div className="fixed inset-y-0 left-0 w-64 bg-white shadow-lg">
         <div className="flex flex-col h-full">
           <div className="p-4">
@@ -296,6 +406,26 @@ const Admin = () => {
                 >
                   <ImageIcon className="mr-2 h-4 w-4" />
                   Galeri
+                </Button>
+              </li>
+              <li>
+                <Button
+                  variant={activeTab === 'blog' ? 'default' : 'ghost'}
+                  className="w-full justify-start"
+                  onClick={() => setActiveTab('blog')}
+                >
+                  <PenTool className="mr-2 h-4 w-4" />
+                  Blog
+                </Button>
+              </li>
+              <li>
+                <Button
+                  variant={activeTab === 'about' ? 'default' : 'ghost'}
+                  className="w-full justify-start"
+                  onClick={() => setActiveTab('about')}
+                >
+                  <Info className="mr-2 h-4 w-4" />
+                  Hakkımızda
                 </Button>
               </li>
               <li>
@@ -338,7 +468,9 @@ const Admin = () => {
         </div>
       </div>
 
+      {/* Main Content */}
       <div className="ml-64 p-8">
+        {/* Dashboard */}
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -392,32 +524,10 @@ const Admin = () => {
                 </div>
               </CardContent>
             </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Son Eklenenler</CardTitle>
-                <CardDescription>Son eklenen görseller</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  {galleryItems.slice(0, 4).map((item) => (
-                    <div key={item.id} className="relative group">
-                      <img
-                        src={item.image_url}
-                        alt={item.title}
-                        className="w-full h-32 object-cover rounded-lg"
-                      />
-                      <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                        <p className="text-white text-sm">{item.title}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
           </div>
         )}
 
+        {/* Gallery */}
         {activeTab === 'gallery' && (
           <div className="space-y-6">
             <Card>
@@ -426,14 +536,14 @@ const Admin = () => {
                 <CardDescription>Galeriye yeni görsel ekleyin</CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleGalleryUpload} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Resimler</label>
                     <Input
                       type="file"
                       accept="image/*"
                       multiple
-                      onChange={handleImageUpload}
+                      onChange={(e) => setImages(Array.from(e.target.files || []))}
                       required
                     />
                   </div>
@@ -458,7 +568,7 @@ const Admin = () => {
 
                   <div>
                     <label className="block text-sm font-medium mb-1">Kategori</label>
-                    <Select value={category} onValueChange={setCategory} required>
+                    <Select value={category} onValueChange={setCategory}>
                       <SelectTrigger>
                         <SelectValue placeholder="Kategori seçin" />
                       </SelectTrigger>
@@ -517,6 +627,131 @@ const Admin = () => {
           </div>
         )}
 
+        {/* Blog */}
+        {activeTab === 'blog' && (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Blog Yazısı Ekle</CardTitle>
+                <CardDescription>Yeni blog yazısı oluşturun</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleBlogSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Başlık</label>
+                    <Input
+                      value={blogTitle}
+                      onChange={(e) => setBlogTitle(e.target.value)}
+                      placeholder="Blog yazısı başlığı"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Kategori</label>
+                    <Select value={blogCategory} onValueChange={setBlogCategory}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Kategori seçin" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="peyzaj">Peyzaj</SelectItem>
+                        <SelectItem value="bitkiler">Bitkiler</SelectItem>
+                        <SelectItem value="tasarim">Tasarım</SelectItem>
+                        <SelectItem value="uretim">Üretim</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">İçerik</label>
+                    <Textarea
+                      value={blogContent}
+                      onChange={(e) => setBlogContent(e.target.value)}
+                      placeholder="Blog yazısı içeriği"
+                      rows={6}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Görsel</label>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setBlogImage(e.target.files?.[0] || null)}
+                    />
+                  </div>
+
+                  <Button type="submit" disabled={loading}>
+                    {loading ? 'Yükleniyor...' : 'Yazıyı Yayınla'}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Blog Yazıları</CardTitle>
+                <CardDescription>Mevcut blog yazılarını yönetin</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {blogPosts.map((post) => (
+                    <div key={post.id} className="bg-white p-4 rounded-lg shadow">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-semibold">{post.title}</h3>
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                          {post.category}
+                        </span>
+                      </div>
+                      <p className="text-gray-600 text-sm mt-2">{post.content.substring(0, 150)}...</p>
+                      <div className="mt-4 flex justify-end space-x-2">
+                        <Button variant="outline" size="sm">Düzenle</Button>
+                        <Button variant="destructive" size="sm">Sil</Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* About */}
+        {activeTab === 'about' && aboutContent && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Hakkımızda</CardTitle>
+              <CardDescription>Hakkımızda bölümünü düzenleyin</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleAboutUpdate} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">İçerik</label>
+                  <Textarea
+                    value={aboutContent.content}
+                    onChange={(e) => setAboutContent({ ...aboutContent, content: e.target.value })}
+                    rows={6}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Görsel URL</label>
+                  <Input
+                    value={aboutContent.image_url || ''}
+                    onChange={(e) => setAboutContent({ ...aboutContent, image_url: e.target.value })}
+                    placeholder="https://example.com/image.jpg"
+                  />
+                </div>
+
+                <Button type="submit">Güncelle</Button>
+              </form>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Hero */}
         {activeTab === 'hero' && heroContent && (
           <Card>
             <CardHeader>
@@ -552,14 +787,13 @@ const Admin = () => {
                   />
                 </div>
 
-                <div className="mt-4">
-                  <Button type="submit">Güncelle</Button>
-                </div>
+                <Button type="submit">Güncelle</Button>
               </form>
             </CardContent>
           </Card>
         )}
 
+        {/* Settings */}
         {activeTab === 'settings' && (
           <Card>
             <CardHeader>
