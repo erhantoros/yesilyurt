@@ -7,6 +7,7 @@ import { useCatalog } from '@/hooks/use-catalog';
 export default function Catalog() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [touchStart, setTouchStart] = useState(0);
   const { catalogPages } = useCatalog();
   const totalPages = catalogPages.length;
 
@@ -22,6 +23,32 @@ export default function Catalog() {
     }
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.touches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStart) return;
+
+    const currentTouch = e.touches[0].clientX;
+    const diff = touchStart - currentTouch;
+
+    if (Math.abs(diff) > 50) { // Minimum swipe distance
+      if (diff > 0) {
+        // Swipe left
+        goToNextPage();
+      } else {
+        // Swipe right
+        goToPreviousPage();
+      }
+      setTouchStart(0);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setTouchStart(0);
+  };
+
   const handleKeyPress = (e: KeyboardEvent) => {
     if (isFullscreen) {
       if (e.key === 'ArrowRight') goToNextPage();
@@ -30,7 +57,6 @@ export default function Catalog() {
     }
   };
 
-  // Klavye olaylarını dinle
   useEffect(() => {
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
@@ -109,11 +135,17 @@ export default function Catalog() {
 
       {/* Tam Ekran Görüntüleyici */}
       {isFullscreen && (
-        <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+        <div 
+          className="fixed inset-0 bg-black z-50 flex items-center justify-center"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           {/* Kapatma Butonu */}
           <button
             onClick={() => setIsFullscreen(false)}
-            className="absolute top-4 right-4 text-white p-2 hover:bg-white/10 rounded-full transition-colors"
+            className="absolute top-4 right-4 text-white p-4 hover:bg-white/10 rounded-full transition-colors z-50"
+            style={{ WebkitTapHighlightColor: 'transparent' }}
           >
             <X className="h-8 w-8" />
           </button>
@@ -122,7 +154,8 @@ export default function Catalog() {
           <button
             onClick={goToPreviousPage}
             disabled={currentPage === 1}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-white p-2 hover:bg-white/10 rounded-full transition-colors disabled:opacity-50 disabled:hover:bg-transparent"
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-white p-4 hover:bg-white/10 rounded-full transition-colors disabled:opacity-50 disabled:hover:bg-transparent z-50"
+            style={{ WebkitTapHighlightColor: 'transparent' }}
           >
             <ChevronLeft className="h-8 w-8" />
           </button>
@@ -138,7 +171,8 @@ export default function Catalog() {
           <button
             onClick={goToNextPage}
             disabled={currentPage === totalPages}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-white p-2 hover:bg-white/10 rounded-full transition-colors disabled:opacity-50 disabled:hover:bg-transparent"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-white p-4 hover:bg-white/10 rounded-full transition-colors disabled:opacity-50 disabled:hover:bg-transparent z-50"
+            style={{ WebkitTapHighlightColor: 'transparent' }}
           >
             <ChevronRight className="h-8 w-8" />
           </button>

@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { TreePine } from 'lucide-react';
 import { ImageModal } from '@/components/ui/image-modal';
+import { supabase } from '@/lib/supabase';
 
 interface ProductItem {
   id: string;
@@ -19,21 +20,37 @@ export default function Products() {
     title?: string;
     description?: string;
   } | null>(null);
+  const [productItems, setProductItems] = useState<ProductItem[]>([]);
 
-  // Bu kısmı daha sonra Supabase'den alacağız
-  const productItems: ProductItem[] = [];
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('product_items')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setProductItems(data || []);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    }
+  };
 
   const categories = [
     { id: 'all', name: 'Tüm Ürünler' },
-    { id: 'agac', name: 'Ağaçlar' },
-    { id: 'cicek', name: 'Çiçekler' },
-    { id: 'cim', name: 'Çim' },
-    { id: 'fidan', name: 'Fidanlar' }
+    { id: 'Ağaçlar', name: 'Ağaçlar' },
+    { id: 'Çiçekler', name: 'Çiçekler' },
+    { id: 'Çim', name: 'Çim' },
+    { id: 'Fidanlar', name: 'Fidanlar' }
   ];
 
   const filteredItems = activeCategory === 'all' 
     ? productItems 
-    : productItems.filter(item => item.category.toLowerCase() === activeCategory);
+    : productItems.filter(item => item.category === activeCategory);
 
   return (
     <Layout>
@@ -92,12 +109,12 @@ export default function Products() {
                     />
                     <div className="absolute top-4 right-4">
                       <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm">
-                        {item.category}
+                        {item.category || 'Kategorisiz'}
                       </span>
                     </div>
                   </div>
                   <div className="p-6">
-                    <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+                    <h3 className="text-xl font-semibold mb-2">{item.title || 'İsimsiz Ürün'}</h3>
                     {item.description && (
                       <p className="text-gray-600 line-clamp-2 mb-4">
                         {item.description}
@@ -115,7 +132,7 @@ export default function Products() {
                         Detayları Gör
                       </button>
                       <a
-                        href={`https://wa.me/905416459107?text=Merhaba, ${item.title} ürünü hakkında bilgi almak istiyorum.`}
+                        href={`https://wa.me/905416459107?text=Merhaba, ${encodeURIComponent(item.title || 'Ürün')} hakkında bilgi almak istiyorum.`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center space-x-2 text-green-600 hover:text-green-700 transition-colors"
@@ -132,7 +149,7 @@ export default function Products() {
             <div className="text-center py-12">
               <TreePine className="h-16 w-16 mx-auto text-green-600 mb-4" />
               <p className="text-gray-600">
-                Ürünler yakında eklenecektir.
+                Henüz ürün eklenmemiş.
               </p>
             </div>
           )}

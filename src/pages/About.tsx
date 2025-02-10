@@ -14,6 +14,43 @@ export default function About() {
     <Layout>
       <div className="pt-20">
         <div className="container mx-auto px-4 py-16">
+          {/* Team Section - Moved to top */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mb-16"
+          >
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center mb-6">
+                  <Users className="h-6 w-6 text-green-600 mr-2" />
+                  <h2 className="text-2xl font-semibold">Ekibimiz</h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {aboutContent.team_members.map((member, index) => (
+                    <div key={index} className="text-center mx-auto w-full max-w-sm">
+                      {member.image_url ? (
+                        <img
+                          src={member.image_url}
+                          alt={member.name}
+                          className="w-48 h-48 mx-auto rounded-full mb-4 object-cover"
+                        />
+                      ) : (
+                        <div className="w-48 h-48 mx-auto rounded-full mb-4 bg-green-100 flex items-center justify-center">
+                          <Users className="h-24 w-24 text-green-600" />
+                        </div>
+                      )}
+                      <h3 className="text-xl font-semibold mb-2">{member.name}</h3>
+                      <div className="text-green-600 mb-3">{member.role}</div>
+                      <p className="text-gray-600">{member.bio}</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
           {/* Hero Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -109,10 +146,10 @@ export default function About() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {aboutContent.values.map((value, index) => (
                     <div key={index} className="text-center">
-                      <div className="w-12 h-12 mx-auto mb-2 bg-green-100 rounded-full flex items-center justify-center">
-                        <TreePine className="h-6 w-6 text-green-600" />
+                      <div className="w-16 h-16 mx-auto mb-3 bg-green-100 rounded-full flex items-center justify-center">
+                        <TreePine className="h-8 w-8 text-green-600" />
                       </div>
-                      <div className="font-medium">{value}</div>
+                      <div className="font-medium text-lg">{value}</div>
                     </div>
                   ))}
                 </div>
@@ -134,42 +171,6 @@ export default function About() {
                   <h2 className="text-2xl font-semibold">Tarihçemiz</h2>
                 </div>
                 <p className="text-gray-600">{aboutContent.history}</p>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Team */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center mb-6">
-                  <Users className="h-6 w-6 text-green-600 mr-2" />
-                  <h2 className="text-2xl font-semibold">Ekibimiz</h2>
-                </div>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {aboutContent.team_members.map((member, index) => (
-                    <div key={index} className="text-center">
-                      {member.image_url ? (
-                        <img
-                          src={member.image_url}
-                          alt={member.name}
-                          className="w-24 h-24 mx-auto rounded-full mb-4 object-cover"
-                        />
-                      ) : (
-                        <div className="w-24 h-24 mx-auto rounded-full mb-4 bg-green-100 flex items-center justify-center">
-                          <Users className="h-12 w-12 text-green-600" />
-                        </div>
-                      )}
-                      <h3 className="font-semibold text-lg">{member.name}</h3>
-                      <div className="text-green-600 mb-2">{member.role}</div>
-                      <p className="text-gray-600 text-sm">{member.bio}</p>
-                    </div>
-                  ))}
-                </div>
               </CardContent>
             </Card>
           </motion.div>

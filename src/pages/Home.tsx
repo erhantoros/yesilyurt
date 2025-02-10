@@ -8,11 +8,17 @@ import { useGallery } from '@/hooks/use-gallery';
 import { useContact } from '@/hooks/use-contact';
 import { toast } from 'sonner';
 import Layout from '@/components/Layout';
+import { ImageModal } from '@/components/ui/image-modal';
 
 export default function Home() {
   const { heroContent, aboutContent } = useContent();
   const { galleryItems } = useGallery();
   const { contactInfo } = useContact();
+  const [selectedImage, setSelectedImage] = useState<{
+    url: string;
+    title?: string;
+    description?: string;
+  } | null>(null);
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -203,7 +209,12 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="group relative overflow-hidden rounded-lg shadow-lg"
+                className="group relative overflow-hidden rounded-lg shadow-lg cursor-pointer"
+                onClick={() => setSelectedImage({
+                  url: item.image_url,
+                  title: item.title,
+                  description: item.description
+                })}
               >
                 <img
                   src={item.image_url}
@@ -342,6 +353,15 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Image Modal */}
+      <ImageModal
+        isOpen={!!selectedImage}
+        onClose={() => setSelectedImage(null)}
+        imageUrl={selectedImage?.url || ''}
+        title={selectedImage?.title}
+        description={selectedImage?.description}
+      />
     </Layout>
   );
 }

@@ -15,15 +15,15 @@ export default function Gallery() {
 
   const categories = [
     { id: 'all', name: 'Tümü' },
-    { id: 'uygulama', name: 'Uygulama' },
-    { id: 'uretim', name: 'Üretim' },
-    { id: 'cizim', name: 'Çizim' },
-    { id: 'tasarim', name: 'Tasarım' }
+    { id: 'Uygulama', name: 'Uygulama' },
+    { id: 'Üretim', name: 'Üretim' },
+    { id: 'Çizim', name: 'Çizim' },
+    { id: 'Tasarım', name: 'Tasarım' }
   ];
 
   const filteredItems = activeCategory === 'all' 
     ? galleryItems 
-    : galleryItems.filter(item => item.category.toLowerCase() === activeCategory);
+    : galleryItems.filter(item => item.category === activeCategory);
 
   return (
     <Layout>
@@ -78,9 +78,16 @@ export default function Gallery() {
                     alt={item.title}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
+                  {item.category && (
+                    <div className="absolute top-4 right-4">
+                      <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm">
+                        {item.category}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div className="p-4">
-                  <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+                  <h3 className="text-xl font-semibold mb-2">{item.title || 'Başlıksız'}</h3>
                   {item.description && (
                     <p className="text-gray-600 line-clamp-2">
                       {item.description}

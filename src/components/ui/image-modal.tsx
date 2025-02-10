@@ -1,6 +1,4 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface ImageModalProps {
   isOpen: boolean;
@@ -12,49 +10,22 @@ interface ImageModalProps {
 
 export function ImageModal({ isOpen, onClose, imageUrl, title, description }: ImageModalProps) {
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4"
-          onClick={onClose}
-        >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="relative max-w-6xl w-full bg-white rounded-lg overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-75 transition-all"
-            >
-              <X size={24} />
-            </button>
-            
-            <div className="flex flex-col md:flex-row">
-              <div className="md:w-3/4">
-                <img
-                  src={imageUrl}
-                  alt={title}
-                  className="w-full h-full object-contain"
-                  style={{ maxHeight: '80vh' }}
-                />
-              </div>
-              
-              {(title || description) && (
-                <div className="md:w-1/4 p-6 bg-white">
-                  {title && <h3 className="text-xl font-bold mb-4">{title}</h3>}
-                  {description && <p className="text-gray-600">{description}</p>}
-                </div>
-              )}
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 overflow-hidden">
+        <div className="relative">
+          <img
+            src={imageUrl}
+            alt={title || 'Resim'}
+            className="w-full h-auto max-h-[80vh] object-contain"
+          />
+          {(title || description) && (
+            <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white p-4">
+              {title && <h3 className="text-xl font-semibold mb-2">{title}</h3>}
+              {description && <p className="text-sm">{description}</p>}
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
